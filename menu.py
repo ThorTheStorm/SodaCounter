@@ -1,4 +1,4 @@
-def main_menu(options):
+def menu(options):
     # Let user select what they want to do
     for index, (key, value) in enumerate(options.items()):
         # Index of item +1
