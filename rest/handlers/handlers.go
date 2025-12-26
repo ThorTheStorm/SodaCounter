@@ -18,9 +18,10 @@ type Handler struct {
 
 // CreateSodaInput represents the expected input for creating a soda
 type CreateSodaInput struct {
-	ID     int    `json:"id"`
-	Soda   string `json:"soda"`
-	Amount uint   `json:"amount"`
+	ID           int    `json:"id"`
+	Soda         string `json:"soda"`
+	Amount       uint   `json:"amount"`
+	Manufacturer string `json:"manufacturer,omitempty"` // Optional field, but strongly recommended
 }
 
 type CreateSodaBatchInput struct {
@@ -37,7 +38,6 @@ func NewHandler(db *sql.DB, tableName string) *Handler {
 
 // GetAllsodas handles the retrieval of all sodas
 func (h *Handler) GetAllSoda(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("Get all sodas called\n")
 	rows, err := h.DB.Query(fmt.Sprintf("SELECT * FROM %s", h.TableName))
 	if err != nil {
 		response.Err(w, response.ErrInternal)
@@ -51,7 +51,7 @@ func (h *Handler) GetAllSoda(w http.ResponseWriter, r *http.Request) {
 	// Iterate over the result set and scan the data into the soda struct
 	for rows.Next() {
 		var sodaItem CreateSodaInput
-		if err := rows.Scan(&sodaItem.ID, &sodaItem.Soda, &sodaItem.Amount); err != nil {
+		if err := rows.Scan(&sodaItem.ID, &sodaItem.Soda, &sodaItem.Amount, &sodaItem.Manufacturer); err != nil {
 			response.Err(w, response.ErrInternal)
 			return
 		}
@@ -84,7 +84,7 @@ func (h *Handler) CreateSoda(w http.ResponseWriter, r *http.Request, tableName s
 	// pp.Print(data)
 
 	// TODO: Add logic to save the new soda to the database (or similar datasource)
-	dbReturn, err := db.TableAddSoda(h.DB, tableName, data.Soda, data.Amount)
+	dbReturn, err := db.TableAddSoda(h.DB, tableName, data.Soda, data.Amount, data.Manufacturer)
 	if err != nil {
 		response.Err(w, response.ErrInternal)
 		logging.AppLog(logging.ErrorLog, fmt.Sprintf("error saving soda to database: %v", err))
@@ -138,7 +138,7 @@ func (h *Handler) UpdateSoda(w http.ResponseWriter, r *http.Request, tableName s
 	}
 
 	// Update the soda in the database
-	err := db.TableUpdateSodaAmount(h.DB, tableName, id, data.Soda, data.Amount)
+	err := db.TableUpdateSodaAmount(h.DB, tableName, id, data.Amount)
 	if err != nil {
 		response.Err(w, response.ErrInternal)
 		logging.AppLog(logging.ErrorLog, fmt.Sprintf("error updating soda in database: %v", err))

@@ -1,11 +1,11 @@
 const AppSettings = {
     apiBase: 'http://localhost:8080',
     paths: {
-        list: '/sodas',
-        single: '/sodas/:id',
-        add: '/sodas',
-        modify: '/sodas/:id',
-        remove: '/sodas/:id'
+        list: '/soda',
+        single: '/soda/:id',
+        add: '/soda',
+        modify: '/soda/:id',
+        remove: '/soda/:id'
     }
 };
 

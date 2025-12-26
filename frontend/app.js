@@ -9,6 +9,7 @@ const elements = {
     itemId: document.getElementById('itemId'),
     itemName: document.getElementById('itemName'),
     itemQty: document.getElementById('itemQty'),
+    itemManufacturer: document.getElementById('itemManufacturer'),
     notifier: document.getElementById('notifier'),
     reloadBtn: document.getElementById('reloadBtn'),
     dismissBtn: document.getElementById('dismissBtn'),
@@ -50,33 +51,40 @@ async function fetchInventory() {
 async function registerItem(evt) {
     evt.preventDefault();
     const name = elements.nameInput.value.trim();
-    const qty = parseInt(elements.qtyInput.value);
+    const manufacturer = document.getElementById('manufacturerField').value.trim();
+    const qty = parseInt(elements.qtyInput.value, 10);
     
-    if (!name || qty < 0) {
-        notify('Invalid input data', 'error-type');
-        return;
-    }
+    if (!name || qty < 0) return;
     
     try {
-        const resp = await fetch(`${AppSettings.apiBase}${AppSettings.paths.add}`, {
+        const response = await fetch(AppSettings.apiBase + AppSettings.paths.add, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ soda: name, amount: qty })
+            body: JSON.stringify({ 
+                soda: name, 
+                amount: qty,
+                manufacturer: manufacturer || undefined
+            })
         });
         
-        if (!resp.ok) throw new Error('Registration failed');
-        notify(`${name} registered successfully`, 'success-type');
-        elements.form.reset();
-        fetchInventory();
+        if (response.ok) {
+            notify('Item registered successfully', 'success-type');
+            elements.nameInput.value = '';
+            document.getElementById('manufacturerField').value = '';
+            elements.qtyInput.value = '';
+            fetchInventory();
+        } else {
+            notify('Failed to register item', 'error-type');
+        }
     } catch (err) {
-        console.error('Register error:', err);
-        notify('Registration unsuccessful', 'error-type');
+        notify('Connection error', 'error-type');
     }
 }
 
 function showEditPanel(item) {
     elements.itemId.value = item.id;
     elements.itemName.value = item.soda;
+    elements.itemManufacturer.value = item.manufacturer;
     elements.itemQty.value = item.amount;
     elements.editOverlay.classList.add('visible');
 }
@@ -91,6 +99,7 @@ async function updateItem(evt) {
     const id = parseInt(elements.itemId.value);
     const qty = parseInt(elements.itemQty.value);
     const name = elements.itemName.value;
+    const manufacturer = elements.itemManufacturer.value;
     
     if (qty < 0) {
         notify('Quantity cannot be negative', 'error-type');
@@ -144,6 +153,7 @@ function displayInventory() {
                 <div class="item-id-badge">REF: ${item.id}</div>
                 <div class="item-icon">${getIconFor(item.soda)}</div>
                 <div class="item-title">${sanitize(item.soda)}</div>
+                ${item.manufacturer ? `<p class="card-manufacturer">${sanitize(item.manufacturer)}</p>` : ''}
                 <div class="quantity-display">
                     <span class="quantity-value">${item.amount}</span>
                     <span class="quantity-text">in stock</span>

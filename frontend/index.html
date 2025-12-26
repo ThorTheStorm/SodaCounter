@@ -17,6 +17,7 @@
             <h2 class="panel-title">Register New Item</h2>
             <form id="itemForm" class="input-row">
                 <input type="text" id="nameField" placeholder="Beverage name" class="text-input" required>
+                <input type="text" id="manufacturerField" placeholder="Manufacturer" class="text-input">
                 <input type="number" id="qtyField" placeholder="Qty" class="num-input" min="0" required>
                 <button type="submit" class="action-btn add-btn">Register</button>
             </form>
@@ -57,6 +58,10 @@
                 <div class="field-wrapper">
                     <label class="field-label">Product Name</label>
                     <input type="text" id="itemName" class="locked-field" readonly>
+                </div>
+                <div class="field-wrapper">
+                    <label class="field-label">Manufacturer</label>
+                    <input type="text" id="itemManufacturer" class="locked-field" readonly>
                 </div>
                 <div class="field-wrapper">
                     <label class="field-label">Quantity</label>

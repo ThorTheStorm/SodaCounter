@@ -16,7 +16,31 @@ import (
 
 	"sodaCounter_rest/pkg/db"
 	"sodaCounter_rest/pkg/framework/response"
+	"sodaCounter_rest/pkg/logging"
 )
+
+// CORS middleware wraps your handlers
+func enableCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Allow requests from any origin (for development)
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
+		// Allow these HTTP methods
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+
+		// Allow these headers in requests
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		// Handle preflight requests (browser sends OPTIONS before actual request)
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		// Continue to the actual handler
+		next.ServeHTTP(w, r)
+	})
+}
 
 // TODO!: Rebuild this to be a middleware chain function that takes in multiple middlewares and applies them in order
 func middleware(next http.Handler) http.Handler {
@@ -25,6 +49,7 @@ func middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		mws := []func(http.Handler) http.Handler{
 			loggingMiddleware,
+			enableCORS,
 		}
 		for i := len(mws) - 1; i >= 0; i-- {
 			next = mws[i](next)
@@ -36,7 +61,7 @@ func middleware(next http.Handler) http.Handler {
 // Loggin middleware that logs request method, path and time taken to process the request
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println("[LOG]", r.Method, r.URL.Path)
+		logging.AppLog(logging.InfoLog, fmt.Sprintf("%s %s - %s", r.Method, r.URL.Path, r.Host))
 		next.ServeHTTP(w, r)
 	})
 }
@@ -75,13 +100,16 @@ func main() {
 
 	router(api, h) // Setup routes - Contains logic to route requests to appropriate handler methods
 
+	// fileServer := http.FileServer(http.Dir("../frontend"))
+	// http.Handle("/app/", http.StripPrefix("/app/", fileServer))
+
 	server := &http.Server{
 		Addr:    ":8080",
-		Handler: api,
+		Handler: middleware(api), // Wrap the api with middleware
 	}
 
 	// Log server start in terminal
-	fmt.Println("Server started on port 8080")
+	logging.AppLog(logging.InfoLog, "Server started on port 8080")
 
 	serverErr := make(chan error, 1)
 

@@ -53,7 +53,8 @@ func TableInit(db *sql.DB, tableName string) error {
 	CREATE TABLE IF NOT EXISTS %s (
     id          SERIAL PRIMARY KEY,
 	soda  		VARCHAR(50)  NOT NULL UNIQUE,
-	amount   	BIGINT  NOT NULL CHECK (amount >= 0)
+	amount   	BIGINT  NOT NULL CHECK (amount >= 0),
+	manufacturer VARCHAR(50) NOT NULL DEFAULT 'Unspecified'
 	);`, tableName)
 
 	// Execute the table creation query
@@ -65,14 +66,14 @@ func TableInit(db *sql.DB, tableName string) error {
 	return nil
 } // func TableInit
 
-func TableAddSoda(db *sql.DB, tableName string, soda string, amount uint) (int, error) {
+func TableAddSoda(db *sql.DB, tableName string, soda string, amount uint, manufacturer string) (int, error) {
 	query := fmt.Sprintf(`
-		INSERT INTO %s (soda, amount)
-		VALUES ($1, $2)
-		RETURNING id, soda, amount;
+		INSERT INTO %s (soda, amount, manufacturer)
+		VALUES ($1, $2, $3)
+		RETURNING id, soda, amount, manufacturer;
 	`, tableName)
 	var id int
-	err := db.QueryRow(query, soda, amount).Scan(&id, &soda, &amount)
+	err := db.QueryRow(query, soda, amount, manufacturer).Scan(&id, &soda, &amount, &manufacturer)
 	if err != nil {
 		return 0, fmt.Errorf("failed to add soda to table %s: %v", tableName, err)
 	}
@@ -93,7 +94,7 @@ func TableGetSoda(db *sql.DB, tableName string, id int) (*sql.Rows, error) {
 	return response, nil
 } // func TableGetamount
 
-func TableUpdateSodaAmount(db *sql.DB, tableName string, id int, soda string, amount uint) error {
+func TableUpdateSodaAmount(db *sql.DB, tableName string, id int, amount uint) error {
 	query := fmt.Sprintf(`
 		UPDATE %s
 		SET amount = $1
