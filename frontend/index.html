@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soda Inventory Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main class="app-wrapper">
+        <section class="hero-banner">
+            <h1 class="app-title">Soda Stock Manager</h1>
+            <p class="tagline">Track your beverage inventory efficiently</p>
+        </section>
+
+        <section class="control-panel">
+            <h2 class="panel-title">Register New Item</h2>
+            <form id="itemForm" class="input-row">
+                <input type="text" id="nameField" placeholder="Beverage name" class="text-input" required>
+                <input type="number" id="qtyField" placeholder="Qty" class="num-input" min="0" required>
+                <button type="submit" class="action-btn add-btn">Register</button>
+            </form>
+        </section>
+
+        <section class="metrics-panel">
+            <div class="metric-box">
+                <span class="metric-label">Unique Items</span>
+                <span class="metric-number" id="uniqueCount">0</span>
+            </div>
+            <div class="metric-box">
+                <span class="metric-label">Total Stock</span>
+                <span class="metric-number" id="stockTotal">0</span>
+            </div>
+            <div class="metric-box">
+                <span class="metric-label">Top Item</span>
+                <span class="metric-number" id="topItem">—</span>
+            </div>
+        </section>
+
+        <section class="inventory-section">
+            <div class="inventory-header">
+                <h2 class="section-heading">Stock Overview</h2>
+                <button id="reloadBtn" class="action-btn reload-btn">Reload Data</button>
+            </div>
+            <div id="inventoryGrid" class="stock-grid"></div>
+        </section>
+    </main>
+
+    <aside id="editPanel" class="edit-overlay">
+        <div class="edit-container">
+            <div class="edit-header">
+                <h3>Modify Stock</h3>
+                <button id="dismissBtn" class="dismiss-btn">✕</button>
+            </div>
+            <form id="modifyForm" class="edit-form">
+                <input type="hidden" id="itemId">
+                <div class="field-wrapper">
+                    <label class="field-label">Product Name</label>
+                    <input type="text" id="itemName" class="locked-field" readonly>
+                </div>
+                <div class="field-wrapper">
+                    <label class="field-label">Quantity</label>
+                    <input type="number" id="itemQty" class="editable-field" min="0" required>
+                </div>
+                <div class="action-row">
+                    <button type="button" id="cancelBtn" class="action-btn cancel-btn">Cancel</button>
+                    <button type="submit" class="action-btn confirm-btn">Update</button>
+                </div>
+            </form>
+        </div>
+    </aside>
+
+    <div id="notifier" class="notification-bar"></div>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

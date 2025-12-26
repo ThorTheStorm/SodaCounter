@@ -70,8 +70,8 @@ func main() {
 	}
 
 	// 3. Setup HTTP server and routes
-	api := http.NewServeMux()          // Create a new ServeMux (router-object) for routing requests to handlers
-	h := handlers.NewHandler(database) // Initialize a new handler instance
+	api := http.NewServeMux()                     // Create a new ServeMux (router-object) for routing requests to handlers
+	h := handlers.NewHandler(database, tableName) // Initialize a new handler instance
 
 	router(api, h) // Setup routes - Contains logic to route requests to appropriate handler methods
 
@@ -116,21 +116,21 @@ func main() {
 
 // router sets up the routes for the HTTP server
 func router(api *http.ServeMux, h *handlers.Handler) {
-	// Define how to handle everything on /pm
-	api.Handle("/pm", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	// Define how to handle everything on /soda
+	api.Handle("/soda", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
 			h.GetAllSoda(w, r)
 		case http.MethodPost:
 			h.CreateSoda(w, r, tableName)
 		default:
-			http.Error(w, "/PM: method not allowed", http.StatusMethodNotAllowed)
+			http.Error(w, "/soda: method not allowed", http.StatusMethodNotAllowed)
 		}
 	}))
-	// Define how to handle everything on /pm/ like /pm/{id}
-	api.Handle("/pm/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	// Define how to handle everything on /soda/ like /soda/{id}
+	api.Handle("/soda/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Logic for extracting ID from URL path
-		idStr := strings.TrimPrefix(r.URL.Path, "/pm/")
+		idStr := strings.TrimPrefix(r.URL.Path, "/soda/")
 		// fmt.Println("idStr:", idStr)
 		if idStr == "" {
 			response.Err(w, response.ErrInvalidInput)
@@ -151,7 +151,7 @@ func router(api *http.ServeMux, h *handlers.Handler) {
 		case http.MethodDelete:
 			h.DeleteSoda(w, r, tableName, id) // TODO: Implement middleware to extract and validate ID from URL path
 		default:
-			http.Error(w, "/PM/{id}: method not allowed", http.StatusMethodNotAllowed)
+			http.Error(w, "/soda/{id}: method not allowed", http.StatusMethodNotAllowed)
 		}
 	}))
 }

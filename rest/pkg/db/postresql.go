@@ -52,7 +52,7 @@ func TableInit(db *sql.DB, tableName string) error {
 	query := fmt.Sprintf(`
 	CREATE TABLE IF NOT EXISTS %s (
     id          SERIAL PRIMARY KEY,
-	soda  		VARCHAR(50)  NOT NULL,
+	soda  		VARCHAR(50)  NOT NULL UNIQUE,
 	amount   	BIGINT  NOT NULL CHECK (amount >= 0)
 	);`, tableName)
 
@@ -65,21 +65,23 @@ func TableInit(db *sql.DB, tableName string) error {
 	return nil
 } // func TableInit
 
-func TableAddSoda(db *sql.DB, tableName string, soda string, amount uint) error {
+func TableAddSoda(db *sql.DB, tableName string, soda string, amount uint) (int, error) {
 	query := fmt.Sprintf(`
 		INSERT INTO %s (soda, amount)
-		VALUES ($1, $2);
+		VALUES ($1, $2)
+		RETURNING id, soda, amount;
 	`, tableName)
-	_, err := db.Exec(query, soda, amount)
+	var id int
+	err := db.QueryRow(query, soda, amount).Scan(&id, &soda, &amount)
 	if err != nil {
-		return fmt.Errorf("failed to insert amount into table %s: %v", tableName, err)
+		return 0, fmt.Errorf("failed to add soda to table %s: %v", tableName, err)
 	}
-	return nil
+	return id, nil
 } // func TableAddamount
 
 func TableGetSoda(db *sql.DB, tableName string, id int) (*sql.Rows, error) {
 	query := fmt.Sprintf(`
-		SELECT id, soda, amount, author
+		SELECT id, soda, amount
 		FROM %s
 		WHERE id = $1;
 	`, tableName)
@@ -91,15 +93,21 @@ func TableGetSoda(db *sql.DB, tableName string, id int) (*sql.Rows, error) {
 	return response, nil
 } // func TableGetamount
 
-func TableUpdateSoda(db *sql.DB, tableName string, id int, soda string, amount uint) error {
+func TableUpdateSodaAmount(db *sql.DB, tableName string, id int, soda string, amount uint) error {
 	query := fmt.Sprintf(`
 		UPDATE %s
-		SET soda = $1, amount = $2
-		WHERE id = $3;
+		SET amount = $1
+		WHERE id = $2;
 	`, tableName)
-	_, err := db.Exec(query, soda, amount, id)
+	_, err := db.Exec(query, amount, id)
 	return err
 } // func TableUpdateamount
+
+func TableDeleteSoda(db *sql.DB, tableName string, id int) error {
+	query := fmt.Sprintf(`DELETE FROM %s WHERE id = $1;`, tableName)
+	_, err := db.Exec(query, id)
+	return err
+} // func TableDeleteSoda
 
 func DBClose(db *sql.DB) error {
 	if db != nil {
